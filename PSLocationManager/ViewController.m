@@ -79,7 +79,7 @@
     self.strengthLabel.text = NSLocalizedString(@"Unable to determine location", @"");
 }
 
-- (void)locationManager:(PSLocationManager *)locationManager didChangeAuthorizationStatus:(CLAuthorizationStatus)status{
+- (void)locationManager:(PSLocationManager *)locationManager authorizationStatusChanged:(CLAuthorizationStatus)status {
     [[PSLocationManager sharedLocationManager] requestAlwaysAuthorization];
 }
 
