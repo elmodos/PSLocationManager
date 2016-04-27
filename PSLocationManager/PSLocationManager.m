@@ -259,7 +259,7 @@ static const CGFloat kSpeedNotSet = -1.0;
     // Dont forget to add NSLocationAlwaysUsageDescription value to your info.plist
     if ([CLLocationManager locationServicesEnabled]) {
         [self.locationManager requestAlwaysAuthorization];
-    } else {
+    } else if ([self.delegate respondsToSelector:@selector(locationManager:didChangeAuthorizationStatus:)]) {
         [self.delegate locationManager:self didChangeAuthorizationStatus:[CLLocationManager authorizationStatus]];
     }
 }
@@ -268,7 +268,7 @@ static const CGFloat kSpeedNotSet = -1.0;
     // Dont forget to add NSLocationAlwaysUsageDescription value to your info.plist
     if ([CLLocationManager locationServicesEnabled]) {
         [self.locationManager requestWhenInUseAuthorization];
-    } else {
+    } else if ([self.delegate respondsToSelector:@selector(locationManager:didChangeAuthorizationStatus:)]) {
         [self.delegate locationManager:self didChangeAuthorizationStatus:[CLLocationManager authorizationStatus]];
     }
 }
@@ -405,7 +405,9 @@ static const CGFloat kSpeedNotSet = -1.0;
 }
 
 - (void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
-    [self.delegate locationManager:self didChangeAuthorizationStatus:status];
+    if ([self.delegate respondsToSelector:@selector(locationManager:didChangeAuthorizationStatus:)]) {
+        [self.delegate locationManager:self didChangeAuthorizationStatus:status];
+    }
 }
 
 @end
