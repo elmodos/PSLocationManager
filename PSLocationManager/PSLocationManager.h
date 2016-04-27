@@ -47,6 +47,7 @@ typedef enum {
 - (void)locationManagerSignalConsistentlyWeak:(PSLocationManager *)locationManager;
 - (void)locationManager:(PSLocationManager *)locationManager distanceUpdated:(CLLocationDistance)distance;
 - (void)locationManager:(PSLocationManager *)locationManager waypoint:(CLLocation *)waypoint calculatedSpeed:(double)calculatedSpeed;
+- (void)locationManager:(PSLocationManager *)locationManager didChangeAuthorizationStatus:(CLAuthorizationStatus)status;
 - (void)locationManager:(PSLocationManager *)locationManager error:(NSError *)error;
 - (void)locationManager:(PSLocationManager *)locationManager debugText:(NSString *)text;
 
@@ -66,5 +67,8 @@ typedef enum {
 - (BOOL)startLocationUpdates;
 - (void)stopLocationUpdates;
 - (void)resetLocationUpdates;
+
+- (void)requestAlwaysAuthorization;
+- (void)requestWhenInUseAuthorization;
 
 @end
