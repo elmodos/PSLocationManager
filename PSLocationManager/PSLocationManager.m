@@ -52,6 +52,7 @@ static const CGFloat kSpeedNotSet = -1.0;
 @property (nonatomic, strong) NSTimer *locationPingTimer;
 @property (nonatomic) PSLocationManagerGPSSignalStrength signalStrength;
 @property (nonatomic, strong) CLLocation *lastRecordedLocation;
+@property (nonatomic, strong) CLLocation *oldLocation;
 @property (nonatomic) CLLocationDistance totalDistance;
 @property (nonatomic, strong) NSMutableArray *locationHistory;
 @property (nonatomic, strong) NSDate *startTimestamp;
@@ -79,6 +80,7 @@ static const CGFloat kSpeedNotSet = -1.0;
 @synthesize locationPingTimer = _locationPingTimer;
 @synthesize signalStrength = _signalStrength;
 @synthesize lastRecordedLocation = _lastRecordedLocation;
+@synthesize oldLocation = _oldLocation;
 @synthesize totalDistance = _totalDistance;
 @synthesize locationHistory = _locationHistory;
 @synthesize totalSeconds = _totalSeconds;
@@ -128,6 +130,7 @@ static const CGFloat kSpeedNotSet = -1.0;
     self.locationManager = nil;
     
     self.lastRecordedLocation = nil;
+    self.oldLocation = nil;
     self.locationHistory = nil;
     self.speedHistory = nil;
 }
@@ -254,7 +257,26 @@ static const CGFloat kSpeedNotSet = -1.0;
 
 #pragma mark CLLocationManagerDelegate
 
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray<CLLocation *> *)locations {
+    
+    // iOS 6 and later
+    
+    CLLocation *newLocation = [locations lastObject];
+    [self _locationManager:manager didUpdateToLocation:newLocation fromLocation:self.oldLocation];
+    
+    //
+    self.oldLocation = newLocation;
+}
+
 - (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation {
+    
+    [self _locationManager:manager didUpdateToLocation:newLocation fromLocation:oldLocation];
+}
+
+- (void)_locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation {
+    
+    // Deprecated in iOS 6
+    
     // since the oldLocation might be from some previous use of core location, we need to make sure we're getting data from this run
     if (oldLocation == nil) return;
     BOOL isStaleLocation = ([oldLocation.timestamp compare:self.startTimestamp] == NSOrderedAscending);
@@ -362,5 +384,6 @@ static const CGFloat kSpeedNotSet = -1.0;
         [self stopLocationUpdates];
     }
 }
+
 
 @end
