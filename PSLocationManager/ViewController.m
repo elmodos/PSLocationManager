@@ -27,6 +27,15 @@
     [[PSLocationManager sharedLocationManager] startLocationUpdates];
 }
 
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    if (![[PSLocationManager sharedLocationManager] requestAlwaysAuthorization]) {
+        NSLog(@"GPS is disabled");
+    }
+}
+
 - (void)viewDidUnload
 {
     [super viewDidUnload];
@@ -68,6 +77,10 @@
 - (void)locationManager:(PSLocationManager *)locationManager error:(NSError *)error {
     // location services is probably not enabled for the app
     self.strengthLabel.text = NSLocalizedString(@"Unable to determine location", @"");
+}
+
+- (void)locationManager:(PSLocationManager *)locationManager didChangeAuthorizationStatus:(CLAuthorizationStatus)status{
+    [[PSLocationManager sharedLocationManager] requestAlwaysAuthorization];
 }
 
 @end
