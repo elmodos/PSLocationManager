@@ -71,6 +71,8 @@ typedef enum {
 - (BOOL)requestAlwaysAuthorization;
 - (BOOL)requestWhenInUseAuthorization;
 
+- (void)setUpdateLocationsOnBackground:(BOOL)value;
+
 @property (nonatomic, assign) NSUInteger settingDistanceFilter;
 @property (nonatomic, assign) NSUInteger settingHeadingFilter;
 @property (nonatomic, assign) NSUInteger settingDistanceAndSpeedCalculationInterval;

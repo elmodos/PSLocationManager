@@ -276,6 +276,13 @@ static const CGFloat kSpeedNotSet = -1.0;
     return YES;
 }
 
+- (void)setUpdateLocationsOnBackground:(BOOL)value {
+    _locationManager.pausesLocationUpdatesAutomatically = value;
+    
+    if ([_locationManager respondsToSelector:@selector(setAllowsBackgroundLocationUpdates:)]) {
+        _locationManager.allowsBackgroundLocationUpdates = value;
+    }
+}
 
 #pragma mark CLLocationManagerDelegate
 
