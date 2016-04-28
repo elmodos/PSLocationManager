@@ -34,20 +34,6 @@
 
 @class PSLocationManager;
 
-// TODO: move to properties
-extern NSUInteger kDistanceFilter;
-extern NSUInteger kHeadingFilter; 
-extern NSUInteger kDistanceAndSpeedCalculationInterval;
-extern NSUInteger kMinimumLocationUpdateInterval;
-extern NSUInteger kNumLocationHistoriesToKeep;
-extern NSUInteger kValidLocationHistoryDeltaInterval;
-extern NSUInteger kNumSpeedHistoriesToAverage;
-extern NSUInteger kPrioritizeFasterSpeeds;
-extern NSUInteger kMinLocationsNeededToUpdateDistanceAndSpeed;
-extern CGFloat kRequiredHorizontalAccuracy;
-extern CGFloat kMaximumAcceptableHorizontalAccuracy;
-extern NSUInteger kGPSRefinementInterval;
-
 typedef enum {
     PSLocationManagerGPSSignalStrengthInvalid = 0
     , PSLocationManagerGPSSignalStrengthWeak
@@ -84,5 +70,19 @@ typedef enum {
 
 - (BOOL)requestAlwaysAuthorization;
 - (BOOL)requestWhenInUseAuthorization;
+
+@property (nonatomic, assign) NSUInteger settingDistanceFilter;
+@property (nonatomic, assign) NSUInteger settingHeadingFilter;
+@property (nonatomic, assign) NSUInteger settingDistanceAndSpeedCalculationInterval;
+@property (nonatomic, assign) NSUInteger settingMinimumLocationUpdateInterval;
+@property (nonatomic, assign) NSUInteger settingNumLocationHistoriesToKeep;
+@property (nonatomic, assign) NSUInteger settingValidLocationHistoryDeltaInterval;
+@property (nonatomic, assign) NSUInteger settingNumSpeedHistoriesToAverage;
+@property (nonatomic, assign) NSUInteger settingPrioritizeFasterSpeeds;
+@property (nonatomic, assign) NSUInteger settingMinLocationsNeededToUpdateDistanceAndSpeed;
+@property (nonatomic, assign) CGFloat settingRequiredHorizontalAccuracy;
+@property (nonatomic, assign) CGFloat settingMaximumAcceptableHorizontalAccuracy;
+@property (nonatomic, assign) NSUInteger settingGPSRefinementInterval;
+
 
 @end

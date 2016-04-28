@@ -29,19 +29,6 @@
 //  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-static NSUInteger kDistanceFilter = 5; // the minimum distance (meters) for which we want to receive location updates (see docs for CLLocationManager.distanceFilter)
-static NSUInteger kHeadingFilter = 30; // the minimum angular change (degrees) for which we want to receive heading updates (see docs for CLLocationManager.headingFilter)
-static NSUInteger kDistanceAndSpeedCalculationInterval = 3; // the interval (seconds) at which we calculate the user's distance and speed
-static NSUInteger kMinimumLocationUpdateInterval = 10; // the interval (seconds) at which we ping for a new location if we haven't received one yet
-static NSUInteger kNumLocationHistoriesToKeep = 5; // the number of locations to store in history so that we can look back at them and determine which is most accurate
-static NSUInteger kValidLocationHistoryDeltaInterval = 3; // the maximum valid age in seconds of a location stored in the location history
-static NSUInteger kNumSpeedHistoriesToAverage = 3; // the number of speeds to store in history so that we can average them to get the current speed
-static NSUInteger kPrioritizeFasterSpeeds = 1; // if > 0, the currentSpeed and complete speed history will automatically be set to to the new speed if the new speed is faster than the averaged speed
-static NSUInteger kMinLocationsNeededToUpdateDistanceAndSpeed = 3; // the number of locations needed in history before we will even update the current distance and speed
-static CGFloat kRequiredHorizontalAccuracy = 20.0; // the required accuracy in meters for a location.  if we receive anything above this number, the delegate will be informed that the signal is weak
-static CGFloat kMaximumAcceptableHorizontalAccuracy = 70.0; // the maximum acceptable accuracy in meters for a location.  anything above this number will be completely ignored
-static NSUInteger kGPSRefinementInterval = 15; // the number of seconds at which we will attempt to achieve kRequiredHorizontalAccuracy before giving up and accepting kMaximumAcceptableHorizontalAccuracy
-
 static const CGFloat kSpeedNotSet = -1.0;
 
 #import "PSLocationManager.h"
@@ -107,16 +94,30 @@ static const CGFloat kSpeedNotSet = -1.0;
 
 - (id)init {
     if ((self = [super init])) {
+        
+        _settingDistanceFilter = 5; // the minimum distance (meters) for which we want to receive location updates (see docs for CLLocationManager.distanceFilter)
+        _settingHeadingFilter = 30; // the minimum angular change (degrees) for which we want to receive heading updates (see docs for CLLocationManager.headingFilter)
+        _settingDistanceAndSpeedCalculationInterval = 3; // the interval (seconds) at which we calculate the user's distance and speed
+        _settingMinimumLocationUpdateInterval = 10; // the interval (seconds) at which we ping for a new location if we haven't received one yet
+        _settingNumLocationHistoriesToKeep = 5; // the number of locations to store in history so that we can look back at them and determine which is most accurate
+        _settingValidLocationHistoryDeltaInterval = 3; // the maximum valid age in seconds of a location stored in the location history
+        _settingNumSpeedHistoriesToAverage = 3; // the number of speeds to store in history so that we can average them to get the current speed
+        _settingPrioritizeFasterSpeeds = 1; // if > 0, the currentSpeed and complete speed history will automatically be set to to the new speed if the new speed is faster than the averaged speed
+        _settingMinLocationsNeededToUpdateDistanceAndSpeed = 3; // the number of locations needed in history before we will even update the current distance and speed
+        _settingRequiredHorizontalAccuracy = 20.0; // the required accuracy in meters for a location.  if we receive anything above this number, the delegate will be informed that the signal is weak
+        _settingMaximumAcceptableHorizontalAccuracy = 70.0; // the maximum acceptable accuracy in meters for a location.  anything above this number will be completely ignored
+        _settingGPSRefinementInterval = 15; // the number of seconds at which we will attempt to achieve kRequiredHorizontalAccuracy before giving up and accepting kMaximumAcceptableHorizontalAccuracy
+        
         if ([CLLocationManager locationServicesEnabled]) {
             self.locationManager = [[CLLocationManager alloc] init];
             self.locationManager.delegate = self;
             self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
-            self.locationManager.distanceFilter = kDistanceFilter;
-            self.locationManager.headingFilter = kHeadingFilter;
+            self.locationManager.distanceFilter = _settingDistanceFilter;
+            self.locationManager.headingFilter = _settingHeadingFilter;
         }
         
-        self.locationHistory = [NSMutableArray arrayWithCapacity:kNumLocationHistoriesToKeep];
-        self.speedHistory = [NSMutableArray arrayWithCapacity:kNumSpeedHistoriesToAverage];
+        self.locationHistory = [NSMutableArray arrayWithCapacity:_settingNumLocationHistoriesToKeep];
+        self.speedHistory = [NSMutableArray arrayWithCapacity:_settingNumSpeedHistoriesToAverage];
         [self resetLocationUpdates];
     }
     
@@ -174,7 +175,7 @@ static const CGFloat kSpeedNotSet = -1.0;
     if (!self.checkingSignalStrength) {
         self.checkingSignalStrength = YES;
         
-        double delayInSeconds = kGPSRefinementInterval;
+        double delayInSeconds = _settingGPSRefinementInterval;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
             self.checkingSignalStrength = NO;
@@ -304,7 +305,7 @@ static const CGFloat kSpeedNotSet = -1.0;
     
     [self.locationPingTimer invalidate];
     
-    if (newLocation.horizontalAccuracy <= kRequiredHorizontalAccuracy) {
+    if (newLocation.horizontalAccuracy <= _settingRequiredHorizontalAccuracy) {
         self.signalStrength = PSLocationManagerGPSSignalStrengthStrong;
     } else {
         self.signalStrength = PSLocationManagerGPSSignalStrengthWeak;
@@ -312,33 +313,33 @@ static const CGFloat kSpeedNotSet = -1.0;
     
     double horizontalAccuracy;
     if (self.allowMaximumAcceptableAccuracy) {
-        horizontalAccuracy = kMaximumAcceptableHorizontalAccuracy;
+        horizontalAccuracy = _settingMaximumAcceptableHorizontalAccuracy;
     } else {
-        horizontalAccuracy = kRequiredHorizontalAccuracy;
+        horizontalAccuracy = _settingRequiredHorizontalAccuracy;
     }
     
     if (!isStaleLocation && newLocation.horizontalAccuracy >= 0 && newLocation.horizontalAccuracy <= horizontalAccuracy) {
         
         [self.locationHistory addObject:newLocation];
-        if ([self.locationHistory count] > kNumLocationHistoriesToKeep) {
+        if ([self.locationHistory count] > _settingNumLocationHistoriesToKeep) {
             [self.locationHistory removeObjectAtIndex:0];
         }
         
         BOOL canUpdateDistanceAndSpeed = NO;
-        if ([self.locationHistory count] >= kMinLocationsNeededToUpdateDistanceAndSpeed) {
+        if ([self.locationHistory count] >= _settingMinLocationsNeededToUpdateDistanceAndSpeed) {
             canUpdateDistanceAndSpeed = YES && self.readyToExposeDistanceAndSpeed;
         }
         
-        if (self.forceDistanceAndSpeedCalculation || [NSDate timeIntervalSinceReferenceDate] - self.lastDistanceAndSpeedCalculation > kDistanceAndSpeedCalculationInterval) {
+        if (self.forceDistanceAndSpeedCalculation || [NSDate timeIntervalSinceReferenceDate] - self.lastDistanceAndSpeedCalculation > _settingDistanceAndSpeedCalculationInterval) {
             self.forceDistanceAndSpeedCalculation = NO;
             self.lastDistanceAndSpeedCalculation = [NSDate timeIntervalSinceReferenceDate];
             
             CLLocation *lastLocation = (self.lastRecordedLocation != nil) ? self.lastRecordedLocation : oldLocation;
             
             CLLocation *bestLocation = nil;
-            CGFloat bestAccuracy = kRequiredHorizontalAccuracy;
+            CGFloat bestAccuracy = _settingRequiredHorizontalAccuracy;
             for (CLLocation *location in self.locationHistory) {
-                if ([NSDate timeIntervalSinceReferenceDate] - [location.timestamp timeIntervalSinceReferenceDate] <= kValidLocationHistoryDeltaInterval) {
+                if ([NSDate timeIntervalSinceReferenceDate] - [location.timestamp timeIntervalSinceReferenceDate] <= _settingValidLocationHistoryDeltaInterval) {
                     if (location.horizontalAccuracy <= bestAccuracy && location != lastLocation) {
                         bestAccuracy = location.horizontalAccuracy;
                         bestLocation = location;
@@ -359,7 +360,7 @@ static const CGFloat kSpeedNotSet = -1.0;
                 } else {
                     [self.speedHistory addObject:[NSNumber numberWithDouble:speed]];
                 }
-                if ([self.speedHistory count] > kNumSpeedHistoriesToAverage) {
+                if ([self.speedHistory count] > _settingNumSpeedHistoriesToAverage) {
                     [self.speedHistory removeObjectAtIndex:0];
                 }
                 if ([self.speedHistory count] > 1) {
@@ -369,10 +370,10 @@ static const CGFloat kSpeedNotSet = -1.0;
                     }
                     if (canUpdateDistanceAndSpeed) {
                         double newSpeed = totalSpeed / (double)[self.speedHistory count];
-                        if (kPrioritizeFasterSpeeds > 0 && speed > newSpeed) {
+                        if (_settingPrioritizeFasterSpeeds > 0 && speed > newSpeed) {
                             newSpeed = speed;
                             [self.speedHistory removeAllObjects];
-                            for (int i=0; i<kNumSpeedHistoriesToAverage; i++) {
+                            for (int i=0; i<_settingNumSpeedHistoriesToAverage; i++) {
                                 [self.speedHistory addObject:[NSNumber numberWithDouble:newSpeed]];
                             }
                         }
@@ -388,7 +389,7 @@ static const CGFloat kSpeedNotSet = -1.0;
     }
     
     // this will be invalidated above if a new location is received before it fires
-    self.locationPingTimer = [NSTimer timerWithTimeInterval:kMinimumLocationUpdateInterval target:self selector:@selector(requestNewLocation) userInfo:nil repeats:NO];
+    self.locationPingTimer = [NSTimer timerWithTimeInterval:_settingMinimumLocationUpdateInterval target:self selector:@selector(requestNewLocation) userInfo:nil repeats:NO];
     [[NSRunLoop mainRunLoop] addTimer:self.locationPingTimer forMode:NSRunLoopCommonModes];
 }
 
