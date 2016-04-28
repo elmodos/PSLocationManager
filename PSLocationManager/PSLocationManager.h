@@ -34,6 +34,20 @@
 
 @class PSLocationManager;
 
+// TODO: move to properties
+extern NSUInteger kDistanceFilter;
+extern NSUInteger kHeadingFilter; 
+extern NSUInteger kDistanceAndSpeedCalculationInterval;
+extern NSUInteger kMinimumLocationUpdateInterval;
+extern NSUInteger kNumLocationHistoriesToKeep;
+extern NSUInteger kValidLocationHistoryDeltaInterval;
+extern NSUInteger kNumSpeedHistoriesToAverage;
+extern NSUInteger kPrioritizeFasterSpeeds;
+extern NSUInteger kMinLocationsNeededToUpdateDistanceAndSpeed;
+extern CGFloat kRequiredHorizontalAccuracy;
+extern CGFloat kMaximumAcceptableHorizontalAccuracy;
+extern NSUInteger kGPSRefinementInterval;
+
 typedef enum {
     PSLocationManagerGPSSignalStrengthInvalid = 0
     , PSLocationManagerGPSSignalStrengthWeak
